@@ -1,32 +1,35 @@
 import axios from "axios"
 import * as cheerio from "cheerio"
+import { siteConfig } from "~/utils/siteConfig"
 
-let baseUrl = "https://nge-film21.cyou"
+let baseUrl = siteConfig.scrapUrl
 // "https://ngefilm21.host/"
 
 export default defineEventHandler(async (event) => {
   const params = new URL(event.req.url, baseUrl)
-  const page = Number(params.searchParams.get("page"))
+  const page = Number(params.searchParams.get("page")) || 1
   const category = params.searchParams.get("category")
   const query = params.searchParams.get("q") ?? ""
 
   let url = baseUrl
 
   if (page > 1 || query) {
-    url = `${baseUrl}page/${page}/?s=${query}&search=advanced`
+    url = `${baseUrl}/page/${page}/?s=${query}&search=advanced`
+    console.log({ url, query, category, params })
   }
   if (category) {
     url = `${baseUrl}/Genre/${category}/page/${page}`
+    console.log({ url, query, category, params })
   }
 
   const movies = []
 
   try {
-    const res = await axios.get(baseUrl)
+    const res = await axios.get(url)
     const $ = cheerio.load(res.data)
     const movieEl = $("article.item-infinite")
-    let lastPage = 0
 
+    let lastPage = 0
     const pagination = $(".pagination")
     pagination.each((i, e) => {
       $(e).find("a.next.page-numbers").remove()

@@ -1,8 +1,10 @@
 import axios from "axios"
 import * as cheerio from "cheerio"
-
+import puppeteer from "puppeteer"
+import { siteConfig } from "~/utils/siteConfig"
 import { removeSeparator } from "~/utils/Helper"
-const baseUrl = "https://nge-film21.cyou"
+
+let baseUrl = siteConfig.scrapUrl
 export default defineEventHandler(async (event) => {
   let url = baseUrl
   const params = event.context.params.movie.split("/")
@@ -46,6 +48,17 @@ export default defineEventHandler(async (event) => {
     }
 
     const streamingLinks = await getStreamingLinks(streamLinks)
+
+    const eps_links_tv = []
+    $(".gmr-listseries a").each((i, el) => {
+      if (i !== 0) {
+        let link = $(el).attr("href")
+        eps_links_tv.push({
+          title: $(el).text(),
+          tvId: link?.replace(siteConfig.scrapUrl, ""),
+        })
+      }
+    })
 
     $("#main").each((index, element) => {
       $(element)
@@ -91,7 +104,7 @@ export default defineEventHandler(async (event) => {
           number_of_eps: dataMovie.jumlah_episode ?? "",
           network: dataMovie.jaringan ?? "",
           artist: dataMovie.pemain ?? "",
-          download_links,
+          eps_links: eps_links_tv,
         })
       }
     })
@@ -101,25 +114,51 @@ export default defineEventHandler(async (event) => {
 
   const data = params[0] !== "tv" ? movieDetail : tvDetail
 
-  return { data }
+  return data
 })
 
 export async function getStreamingLinks(streamLinks) {
   const streamingLinks = []
 
-  const res = await axios.get(`${baseUrl}/mortal-kombat-2021`)
-  const $ = cheerio.load(res.data)
+  const browser = await puppeteer.launch({ headless: true })
 
-  const streamLink = $("#p1 > div")
+  try {
+    for (let i = 0; i < streamLinks.length; i++) {
+      const url = streamLinks[i]
+      const page = await browser.newPage()
+      await page.goto(url, {
+        waitUntil: "domcontentloaded",
+      })
 
-  // for (let i = 0; i < streamLinks.length; i++) {
-  //   const res = await axios.get(streamLinks[i])
-  //   const $ = cheerio.load(res.data)
-  //   const streamLink = $(`#p1`).contents()
+      const linksWithId = await page.$$eval("li > a[id]", (elements) => {
+        return elements.map((element) => element.id)
+      })
 
-  //   // streamingLinks.push(streamLink)
-  // }
-  console.log(streamLink.length)
+      const newLinkId = linksWithId.splice(1, 4)
 
-  // return streamingLinks
+      for (const linkId of newLinkId) {
+        await page.click(`a[id="${linkId}"]`)
+        await page.waitForSelector(".selected .gmr-embed-responsive > iframe")
+        await page.waitForTimeout(3000)
+
+        const src = await page.$eval(
+          ".selected .gmr-embed-responsive > iframe",
+          (el) => el.getAttribute("src")
+        )
+        streamingLinks.push(src)
+      }
+
+      await page.close()
+    }
+  } catch (error) {
+    console.log(error)
+  }
+  const filteredLinks = streamingLinks.reduce((accumulator, currentLink) => {
+    if (!accumulator.includes(currentLink)) {
+      accumulator.push(currentLink)
+    }
+
+    return accumulator
+  }, [])
+  return filteredLinks
 }
