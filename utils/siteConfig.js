@@ -1,3 +1,3 @@
 export const siteConfig = {
-  scrapUrl: "https://nge-film21.xyz",
+  scrapUrl: "https://nge-film.xyz",
 }
