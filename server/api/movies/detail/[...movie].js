@@ -110,13 +110,11 @@ export default defineEventHandler(async (event) => {
         })
       }
     })
+    const data = params[0] !== "tv" ? movieDetail : tvDetail
+    return data
   } catch (error) {
-    console.log(error)
+    return error
   }
-
-  const data = params[0] !== "tv" ? movieDetail : tvDetail
-
-  return data
 })
 
 export async function getStreamingLinks(streamLinks) {
