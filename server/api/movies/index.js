@@ -6,6 +6,8 @@ let baseUrl = siteConfig.scrapUrl
 // "https://ngefilm21.host/"
 
 export default defineEventHandler(async (event) => {
+  event.res.setHeader("Access-Control-Allow-Origin", "*")
+
   const params = new URL(event.req.url, baseUrl)
   const page = Number(params.searchParams.get("page")) || 1
   const category = params.searchParams.get("category")
@@ -55,9 +57,8 @@ export default defineEventHandler(async (event) => {
         genre: $(e).find(".gmr-movie-on ").text().split(", "),
       })
     })
+    return { movies, page, lastPage }
   } catch (error) {
     return error
   }
-
-  return { movies, page, query, category }
 })

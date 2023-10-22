@@ -6,6 +6,8 @@ import { removeSeparator } from "~/utils/Helper"
 
 let baseUrl = siteConfig.scrapUrl
 export default defineEventHandler(async (event) => {
+  event.res.setHeader("Access-Control-Allow-Origin", "*")
+
   let url = baseUrl
   const params = event.context.params.movie.split("/")
 

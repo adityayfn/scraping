@@ -4,6 +4,8 @@ import * as cheerio from "cheerio"
 import { getStreamingLinks } from "../../movies/detail/[...movie]"
 
 export default defineEventHandler(async (event) => {
+    event.res.setHeader("Access-Control-Allow-Origin", "*")
+
   const param = event.context.params.eps.split("/")
 
   const tvId = `${param[0]}/${param[1]}`
