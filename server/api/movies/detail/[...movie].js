@@ -124,6 +124,7 @@ export async function getStreamingLinks(streamLinks) {
     headless: true,
     executablePath: "/usr/bin/google-chrome-stable",
     cacheDirectory: "~/.cache/puppeteer",
+    args: ["--no-sandbox", "--disabled-setupid-sandbox"],
   })
 
   try {
