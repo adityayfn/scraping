@@ -120,7 +120,11 @@ export default defineEventHandler(async (event) => {
 export async function getStreamingLinks(streamLinks) {
   const streamingLinks = []
 
-  const browser = await puppeteer.launch({ headless: true })
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: "/usr/bin/google-chrome",
+    cacheDirectory: "~/.cache/puppeteer",
+  })
 
   try {
     for (let i = 0; i < streamLinks.length; i++) {
