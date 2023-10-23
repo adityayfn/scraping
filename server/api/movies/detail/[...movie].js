@@ -122,7 +122,7 @@ export async function getStreamingLinks(streamLinks) {
 
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: "/usr/bin/google-chrome",
+    executablePath: "/usr/bin/chromium-browser",
     cacheDirectory: "~/.cache/puppeteer",
   })
 
